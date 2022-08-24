@@ -8,6 +8,7 @@ public class DynamicProperties {
 
     @Getter
     @Builder.Default
-    private final int difficulty = 0;
+    private int difficulty = 0;
+
 
 }

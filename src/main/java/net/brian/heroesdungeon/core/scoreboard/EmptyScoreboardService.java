@@ -7,8 +7,15 @@ import org.bukkit.scoreboard.Score;
 import java.util.List;
 
 public class EmptyScoreboardService implements ScoreboardService {
+
     @Override
-    public void update(Player player, List<String> lines) {
+    public void update(Player player,Object registery, List<String> lines) {
 
     }
+
+    @Override
+    public void removeLines(Player player, Object registery) {
+
+    }
+
 }

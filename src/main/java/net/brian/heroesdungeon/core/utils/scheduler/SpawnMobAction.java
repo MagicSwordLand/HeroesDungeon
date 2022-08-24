@@ -36,9 +36,9 @@ public class SpawnMobAction implements SchedulerAction {
 
         private void spawn(DungeonInstance instance){
             if(instance.isDisposed()) return;
-            if(level > 1){
+            if(amount > 1){
                 Location loc = instance.fixed(x,y,z);
-                for(int i=0;i<level;i++){
+                for(int i=0;i<amount;i++){
                     MythicBukkit.inst().getMobManager().spawnMob(type,loc,level);
                 }
             }

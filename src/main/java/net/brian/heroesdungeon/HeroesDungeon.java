@@ -8,6 +8,7 @@ import net.brian.heroesdungeon.api.players.PartyService;
 import net.brian.heroesdungeon.api.players.RespawnService;
 import net.brian.heroesdungeon.api.scoreboard.ScoreboardService;
 import net.brian.heroesdungeon.api.world.WorldService;
+import net.brian.heroesdungeon.bukkit.commands.CommandManager;
 import net.brian.heroesdungeon.bukkit.configs.Settings;
 import net.brian.heroesdungeon.core.dungeon.DungeonManagerImpl;
 import net.brian.heroesdungeon.core.players.NormalRespawnService;
@@ -46,6 +47,9 @@ public final class HeroesDungeon extends JavaPlugin {
     private ScoreboardService scoreboardService = new EmptyScoreboardService();
 
 
+    @Getter
+    private Settings settings;
+
     @Override
     public void onEnable() {
         instance = this;
@@ -66,9 +70,10 @@ public final class HeroesDungeon extends JavaPlugin {
             pluginManager.disablePlugin(this);
             return;
         }
+        new CommandManager(this);
         dungeonManager = new DungeonManagerImpl(this);
         respawnService = new NormalRespawnService(this);
-        new Settings(this);
+        settings = new Settings(this);
         Test.run(this);
     }
 

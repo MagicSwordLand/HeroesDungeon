@@ -5,7 +5,7 @@ api-version: 1.18
 commands:
   HeroesDungeon:
     aliases:
-      - Dungeon
+      - dungeon
       - hd
 depend:
   - SlimeWorldManager
@@ -13,4 +13,3 @@ depend:
 softdepend:
   - MythicMobs
   - ScriptedQuests
-  -

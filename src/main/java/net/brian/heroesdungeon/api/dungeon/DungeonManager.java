@@ -15,6 +15,8 @@ public interface DungeonManager {
 
     void startDungeon(String dungeon, List<Player> players,DynamicProperties immutableProperties);
 
+    void removeDisposedDungeon(UUID uuid);
+
     void registerDungeon(String dungeonID, DungeonFactory factory);
 
     Collection<DungeonInstance> getDungeons();

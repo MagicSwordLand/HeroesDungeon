@@ -10,6 +10,7 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -37,22 +38,28 @@ public abstract class AbstractDungeon implements DungeonInstance , Listener {
     protected Location respawnPoint;
 
     protected final BukkitTask scoreboardTask;
+    protected final BukkitTask disposeTask;
 
     public AbstractDungeon(UUID uuid, List<Player> players, World world, ImmutableProperties immProps){
         this.uniqueID = uuid;
         this.world = world;
         this.players.addAll(players);
-        Bukkit.getPluginManager().registerEvents(this,HeroesDungeon.getInstance());
         properties = immProps;
         respawnPoint = fixed(immProps.getSpawnX(),immProps.getSpawnY(),immProps.getSpawnZ());
         this.players.forEach(p-> {
             p.teleport(respawnPoint);
             HeroesDungeon.getInstance().getRespawnService().setRespawnPoint(p,respawnPoint);
             alivePlayersAndLives.put(p, immProps.getLives());
+            p.setGameMode(immProps.getGameMode());
         });
         scoreboardTask = Bukkit.getScheduler().runTaskTimer(HeroesDungeon.getInstance(),()->{
-            players.forEach(p->HeroesDungeon.getInstance().getScoreboardService().update(p,getScoreboardLines(p)));
+            players.forEach(p->HeroesDungeon.getInstance().getScoreboardService().update(p,this,getScoreboardLines(p)));
         },0,1);
+        disposeTask = Bukkit.getScheduler().runTaskLater(HeroesDungeon.getInstance(), ()->{
+            if(!disposed) dispose();
+        }, immProps.getGameTime());
+
+        Bukkit.getPluginManager().registerEvents(this,HeroesDungeon.getInstance());
     }
 
 
@@ -66,7 +73,9 @@ public abstract class AbstractDungeon implements DungeonInstance , Listener {
         alivePlayersAndLives.remove(player);
         players.add(player);
         player.setGameMode(GameMode.SPECTATOR);
-        HeroesDungeon.getInstance().getRespawnService().setRespawnPoint(player,properties.getLobby());
+        player.sendMessage("你已加入觀戰");
+        HeroesDungeon.getInstance().getRespawnService().setRespawnPoint(player,respawnPoint);
+        player.teleport(respawnPoint);
     }
 
     @Override
@@ -87,12 +96,16 @@ public abstract class AbstractDungeon implements DungeonInstance , Listener {
     public void dispose() {
         disposed = true;
         HandlerList.unregisterAll(this);
+        scoreboardTask.cancel();
         players.forEach(p->{
             HeroesDungeon.getInstance().getRespawnService().setRespawnPoint(p,properties.getLobby());
             p.teleport(properties.getLobby());
             p.setGameMode(properties.getLobbyGameMode());
+
+            HeroesDungeon.getInstance().getScoreboardService().removeLines(p,this);
         });
         HeroesDungeon.getInstance().getWorldService().removeWorld(uniqueID);
+        HeroesDungeon.getInstance().getDungeonManager().removeDisposedDungeon(uniqueID);
         onDispose();
     }
 
@@ -111,7 +124,7 @@ public abstract class AbstractDungeon implements DungeonInstance , Listener {
     }
 
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOWEST)
     public void onDeath(PlayerDeathEvent event){
         Integer lives = alivePlayersAndLives.get(event.getPlayer());
         if(lives != null){
@@ -144,13 +157,16 @@ public abstract class AbstractDungeon implements DungeonInstance , Listener {
     public void onCommand(PlayerCommandPreprocessEvent event){
         if(players.contains(event.getPlayer())){
             for (String cmd : Settings.ALLOWED_COMMANDS) {
-                if(!event.getMessage().startsWith(cmd)){
-                    if(event.getPlayer().hasPermission("dungeon.admin")){
-                        event.getPlayer().sendMessage("在副本中是不能使用此指令的，但因你有權限，所以可以");
-                        event.setCancelled(true);
-                    }
-                    else event.getPlayer().sendMessage("副本中不能使用此指令");
+                if(event.getMessage().startsWith(cmd)){
+                    return;
                 }
+            }
+            if(event.getPlayer().hasPermission("dungeon.admin")){
+                event.getPlayer().sendMessage("在副本中是不能使用此指令的，但因你有權限，所以可以");
+            }
+            else {
+                event.getPlayer().sendMessage("副本中不能使用此指令");
+                event.setCancelled(true);
             }
         }
     }
@@ -159,6 +175,9 @@ public abstract class AbstractDungeon implements DungeonInstance , Listener {
     public void onChangeWorld(PlayerChangedWorldEvent event){
         if(alivePlayersAndLives.containsKey(event.getPlayer())){
             removePlayer(event.getPlayer());
+        }
+        else if(event.getPlayer().getWorld().equals(world)){
+            addSpectator(event.getPlayer());
         }
     }
 }

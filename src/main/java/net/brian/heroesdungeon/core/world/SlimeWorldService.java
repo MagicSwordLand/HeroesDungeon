@@ -10,15 +10,18 @@ import com.grinderwolf.swm.api.world.SlimeWorld;
 import com.grinderwolf.swm.api.world.properties.SlimeProperties;
 import com.grinderwolf.swm.api.world.properties.SlimePropertyMap;
 import com.grinderwolf.swm.plugin.config.ConfigManager;
+import lombok.extern.java.Log;
 import net.brian.heroesdungeon.HeroesDungeon;
 import net.brian.heroesdungeon.api.dungeon.properties.ImmutableProperties;
 import net.brian.heroesdungeon.api.world.WorldService;
 import net.brian.heroesdungeon.bukkit.configs.Settings;
 import net.brian.heroesdungeon.core.utils.Logger;
 import net.brian.heroesdungeon.core.utils.Pair;
+import net.brian.heroesdungeon.core.utils.ProcessTimer;
 import net.brian.playerdatasync.util.time.TimeUnit;
 import org.apache.commons.io.FileUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.Difficulty;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
 
@@ -72,7 +75,7 @@ public class SlimeWorldService implements WorldService {
             try {
                 FileUtils.copyFile(file,targetFile);
                 SlimePropertyMap slimeProps = new SlimePropertyMap();
-
+                slimeProps.setValue(SlimeProperties.DIFFICULTY,immProps.getDifficulty().name());
                 slimeProps.setValue(SlimeProperties.ENVIRONMENT,immProps.getEnviroment());
                 SlimeWorld slimeWorld = slimePlugin.loadWorld(slimeLoader,WORLD_NAMESPACE+dungeonUUID,false,slimeProps);
                 if(slimeWorld == null){
@@ -107,19 +110,14 @@ public class SlimeWorldService implements WorldService {
     @Override
     public void removeWorld(UUID dungeonUUID) {
         String worldName = WORLD_NAMESPACE+dungeonUUID;
+        Logger.debug("Removing world "+worldName);
         World world = Bukkit.getWorld(worldName);
-        ConfigManager.getWorldConfig().getWorlds().remove(worldName);
         if(world != null){
             world.getPlayers().forEach(p->p.teleport(Settings.DEFAULT_LOBBY));
             world.getEntities().forEach(Entity::remove);
-            Bukkit.getScheduler().runTaskAsynchronously(dungeonPlugin,()->{
-                try {
-                    slimeLoader.deleteWorld(worldName);
-                } catch (UnknownWorldException | IOException e) {
-                    e.printStackTrace();
-                }
-            });
-            Bukkit.unloadWorld(world,false);
+            Bukkit.getScheduler().runTaskLater(HeroesDungeon.getInstance(),()->{
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(),"swm unload "+worldName);
+            },100);
         }
         else{
             Bukkit.getScheduler().runTaskAsynchronously(dungeonPlugin,()->{

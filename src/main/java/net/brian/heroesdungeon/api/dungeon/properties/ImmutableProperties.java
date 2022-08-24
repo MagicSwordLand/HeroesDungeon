@@ -3,10 +3,7 @@ package net.brian.heroesdungeon.api.dungeon.properties;
 import lombok.Builder;
 import lombok.Getter;
 import net.brian.heroesdungeon.bukkit.configs.Settings;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.World;
-import org.bukkit.WorldType;
+import org.bukkit.*;
 
 
 @Builder
@@ -30,12 +27,31 @@ public class ImmutableProperties {
     @Builder.Default
     private double spawnX = 0,spawnY = 100,spawnZ = 0;
 
-    @Getter
-    @Builder.Default
-    private Location lobby = Settings.DEFAULT_LOBBY;
+    private Location lobby;
+
+    private GameMode lobbyGameMode;
 
     @Getter
     @Builder.Default
-    private GameMode lobbyGameMode = Settings.DEFAULT_LOBBY_GAMEMODE;
+    private GameMode gameMode = GameMode.SURVIVAL;
+
+    @Getter
+    @Builder.Default
+    private Difficulty difficulty = Difficulty.EASY;
+
+    @Getter
+    @Builder.Default
+    private long gameTime = 20*60*5;
+
+
+    public Location getLobby(){
+        if(lobby == null) return Settings.DEFAULT_LOBBY;
+        return lobby;
+    }
+
+    public GameMode getLobbyGameMode(){
+        if(lobbyGameMode == null) return Settings.DEFAULT_LOBBY_GAMEMODE;
+        return lobbyGameMode;
+    }
 
 }

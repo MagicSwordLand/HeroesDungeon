@@ -13,4 +13,8 @@ public class Logger {
             Bukkit.getLogger().log(Level.INFO,msg);
         }
     }
+
+    public static void warn(String msg){
+        Bukkit.getLogger().log(Level.WARNING,msg);
+    }
 }

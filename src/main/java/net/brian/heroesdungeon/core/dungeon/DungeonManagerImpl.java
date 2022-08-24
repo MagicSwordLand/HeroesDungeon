@@ -30,6 +30,8 @@ public class DungeonManagerImpl implements DungeonManager {
     }
 
 
+
+
     @Override
     public void startDungeon(String dungeon, List<Player> players, DynamicProperties properties) {
         DungeonFactory factory = dungeonFactories.get(dungeon);
@@ -50,6 +52,14 @@ public class DungeonManagerImpl implements DungeonManager {
                 onGoingDungeons.put(dungeonID,factory.create(players,dungeonID,w,properties));
             });
         });
+    }
+
+    @Override
+    public void removeDisposedDungeon(UUID uuid) {
+        DungeonInstance dungeonInstance = onGoingDungeons.get(uuid);
+        if(dungeonInstance != null && dungeonInstance.isDisposed()){
+            onGoingDungeons.remove(uuid);
+        }
     }
 
     @Override

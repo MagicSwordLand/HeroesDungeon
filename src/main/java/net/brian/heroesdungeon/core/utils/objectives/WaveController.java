@@ -15,10 +15,11 @@ public class WaveController extends CompletableContainer {
     @Setter
     Consumer<DungeonInstance> endRunnable;
 
-    HashMap<String,Consumer<DungeonInstance>> objectiveStartProcess;
+    final HashMap<String,Consumer<DungeonInstance>> objectiveStartProcess;
 
     public WaveController(String id) {
         super(id);
+        objectiveStartProcess = new HashMap<>();
     }
 
 
@@ -52,6 +53,7 @@ public class WaveController extends CompletableContainer {
     }
 
     public void pushObj(Objective obj){
+        obj.setParent(this);
         completables.put(obj.getObjectiveID(),obj);
     }
 
