@@ -1,0 +1,16 @@
+name: HeroesDungeon
+version: '${version}'
+main: net.brian.heroesdungeon.HeroesDungeon
+api-version: 1.18
+commands:
+  HeroesDungeon:
+    aliases:
+      - Dungeon
+      - hd
+depend:
+  - SlimeWorldManager
+  - PlayerDataSync
+softdepend:
+  - MythicMobs
+  - ScriptedQuests
+  -
